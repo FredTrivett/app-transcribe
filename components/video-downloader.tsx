@@ -47,7 +47,17 @@ interface VideoDownloaderProps {
 
 export function VideoDownloader({ onDownloadComplete }: VideoDownloaderProps) {
     const [urlInput, setUrlInput] = useState("");
-    const [quality, setQuality] = useState<string>("720");
+    const [quality, setQuality] = useState<string>(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('video-quality') || '360';
+        }
+        return '360';
+    });
+
+    // Persist quality preference
+    useEffect(() => {
+        localStorage.setItem('video-quality', quality);
+    }, [quality]);
     const [queue, setQueue] = useState<QueueItem[]>([]);
     const [isProcessing, setIsProcessing] = useState(false);
 
@@ -182,8 +192,9 @@ export function VideoDownloader({ onDownloadComplete }: VideoDownloaderProps) {
                         </SelectTrigger>
                         <SelectContent className="border-none shadow-xl">
                             <SelectItem value="1080">1080p (HD)</SelectItem>
-                            <SelectItem value="720">720p (Default)</SelectItem>
+                            <SelectItem value="720">720p</SelectItem>
                             <SelectItem value="480">480p</SelectItem>
+                            <SelectItem value="360">360p (Default)</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
