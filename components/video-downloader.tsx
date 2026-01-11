@@ -67,9 +67,17 @@ export function VideoDownloader({ onDownloadComplete }: VideoDownloaderProps) {
                 return;
             }
             const pastedText = e.clipboardData?.getData("text");
-            if (pastedText && isValidUrl(pastedText)) {
-                addToQueue(pastedText);
-                toast.success("Link added from clipboard");
+            if (pastedText) {
+                // Split by newlines and filter valid URLs
+                const urls = pastedText
+                    .split(/[\n\r]+/)
+                    .map(line => line.trim())
+                    .filter(line => line && isValidUrl(line));
+
+                if (urls.length > 0) {
+                    addMultipleToQueue(urls);
+                    toast.success(`${urls.length} link${urls.length > 1 ? 's' : ''} added from clipboard`);
+                }
             }
         };
 
@@ -102,6 +110,34 @@ export function VideoDownloader({ onDownloadComplete }: VideoDownloaderProps) {
         };
 
         setQueue(prev => [...prev, newItem]);
+        setUrlInput("");
+    };
+
+    const addMultipleToQueue = (urls: string[]) => {
+        const existingUrls = new Set(queue.map(item => item.url));
+        const newItems: QueueItem[] = [];
+        let skipped = 0;
+
+        for (const url of urls) {
+            if (existingUrls.has(url)) {
+                skipped++;
+                continue;
+            }
+            existingUrls.add(url); // Prevent duplicates within the batch
+            newItems.push({
+                id: Math.random().toString(36).substring(7),
+                url,
+                status: "pending",
+                progress: 0
+            });
+        }
+
+        if (newItems.length > 0) {
+            setQueue(prev => [...prev, ...newItems]);
+        }
+        if (skipped > 0) {
+            toast.warning(`${skipped} duplicate link${skipped > 1 ? 's' : ''} skipped`);
+        }
         setUrlInput("");
     };
 
