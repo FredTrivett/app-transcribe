@@ -98,17 +98,33 @@ export function VideoList({ refreshTrigger }: VideoListProps) {
         });
     };
 
-    const handleDownload = (e: React.MouseEvent, video: VideoData) => {
+    const handleDownload = async (e: React.MouseEvent, video: VideoData) => {
         e.stopPropagation();
         if (!video.downloadUrl) return;
-        const link = document.createElement("a");
-        link.href = video.downloadUrl;
-        link.download = video.fileName;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+
+        try {
+            toast.info("Starting download...");
+
+            // Fetch the file as a blob to bypass cross-origin restrictions
+            const response = await fetch(video.downloadUrl);
+            const blob = await response.blob();
+
+            // Create a blob URL and trigger download
+            const blobUrl = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = blobUrl;
+            link.download = video.fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Clean up the blob URL
+            URL.revokeObjectURL(blobUrl);
+            toast.success("Download started!");
+        } catch (error) {
+            console.error("Download failed:", error);
+            toast.error("Download failed");
+        }
     };
 
     if (isLoading) {
