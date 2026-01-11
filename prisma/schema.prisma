@@ -30,6 +30,10 @@ model Video {
   originalUrl String?  // Original URL of the video
   niche       String?  // Video niche/category
   
+  // Transcription
+  transcription       String?  // Full transcription text
+  transcriptionStatus TranscriptionStatus @default(NONE)
+  
   // Status tracking
   status      VideoStatus @default(PENDING)
   
@@ -46,4 +50,11 @@ enum VideoStatus {
   PROCESSING   // Being transcribed/processed
   COMPLETED    // Processing complete
   FAILED       // Processing failed
+}
+
+enum TranscriptionStatus {
+  NONE         // Not transcribed
+  PROCESSING   // Transcription in progress
+  COMPLETED    // Transcription complete
+  FAILED       // Transcription failed
 }

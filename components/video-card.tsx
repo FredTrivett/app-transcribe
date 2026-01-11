@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
     Trash2,
@@ -13,7 +14,8 @@ import {
     VolumeX,
     ExternalLink,
     Play,
-    Pause
+    Pause,
+    FileText
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -50,6 +52,7 @@ interface VideoData {
     platform: string | null;
     originalUrl: string | null;
     niche: string | null;
+    transcriptionStatus?: string | null;
 }
 
 interface VideoCardProps {
@@ -62,6 +65,7 @@ interface VideoCardProps {
 }
 
 export function VideoCard({ video, isGlobalMuted, onToggleMute, onDelete, onContextMenu, onDownload }: VideoCardProps) {
+    const router = useRouter();
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isHovering, setIsHovering] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -204,8 +208,11 @@ export function VideoCard({ video, isGlobalMuted, onToggleMute, onDelete, onCont
                 </div>
             </div>
 
-            {/* Metadata Block */}
-            <div className="p-4 space-y-3">
+            {/* Metadata Block - Clickable to open detail page */}
+            <div
+                className="p-4 space-y-3 cursor-pointer hover:bg-slate-50 transition-colors"
+                onClick={() => router.push(`/video/${video.id}`)}
+            >
                 {/* Title & Platform */}
                 <div className="space-y-1">
                     <h3 className="font-heading font-black text-slate-900 text-base leading-tight line-clamp-2" title={video.title}>
@@ -214,6 +221,12 @@ export function VideoCard({ video, isGlobalMuted, onToggleMute, onDelete, onCont
                     <div className="flex items-center gap-1.5 text-slate-500 text-xs font-normal">
                         <PlatformIcon platform={video.platform} className="h-3.5 w-3.5" />
                         <span className="capitalize font-sans">{video.platform || "Video"}</span>
+                        {video.transcriptionStatus === "COMPLETED" && (
+                            <span className="ml-auto flex items-center gap-1 text-green-600 bg-green-50 px-1.5 py-0.5 rounded-md text-[10px] font-medium">
+                                <FileText className="h-3 w-3" />
+                                Transcribed
+                            </span>
+                        )}
                     </div>
                 </div>
 
@@ -231,6 +244,7 @@ export function VideoCard({ video, isGlobalMuted, onToggleMute, onDelete, onCont
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="bg-blue-50 text-blue-600 px-2 py-1 rounded-md hover:bg-blue-100 transition-colors flex items-center gap-1 font-sans"
+                                onClick={(e) => e.stopPropagation()}
                             >
                                 Src <ExternalLink className="h-3 w-3" />
                             </a>
